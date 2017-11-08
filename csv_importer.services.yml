@@ -1,0 +1,6 @@
+services:
+  plugin.manager.importer:
+    class: Drupal\csv_importer\Plugin\ImporterManager
+    parent: default_plugin_manager
+  csv_importer.parser:
+    class: Drupal\csv_importer\Parser
