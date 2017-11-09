@@ -255,6 +255,7 @@ class ImporterForm extends FormBase {
 
   protected function getFieldsIntersection($cid, $entity_type, $entity_type_bundle = NULL, $index) {
     $fields_csv = $this->parser->getCsvFieldsById($cid);
+
     $fields = $this->getEntityTypeFields($entity_type, $entity_type_bundle)[$index];
 
     return array_intersect($fields_csv, $fields);
@@ -278,35 +279,21 @@ class ImporterForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    $entity_type = $form_state->getValue('entity_type');
     $entity_type_bundle = NULL;
+
     if (isset($form_state->getUserInput()['entity_type_bundle'])) {
       $entity_type_bundle = $form_state->getUserInput()['entity_type_bundle'];
     }
 
-    $entity_type = $form_state->getValue('entity_type');
-
     $cid = current($form_state->getValue('csv'));
-    $fields = $this->getFieldsMissing($cid, $form_state->getValue('entity_type'), $entity_type_bundle, 'required');
-
-    if ($fields && is_array($fields)) {
-      $render = [
-        '#theme' => 'item_list',
-        '#items' => $fields,
-      ];
-
-      drupal_set_message($this->t('Your CSV has missing required fields: @fields', ['@fields' => $this->renderer->render($render)]), 'error');
-    }
-
-    else {
-      $importer = $this->importer->createInstance($entity_type . '_importer', [
-        'cid' => $cid,
-        'entity_type' => $entity_type,
-        'entity_type_bundle' => $entity_type_bundle,
-        'fields' => $this->getFieldsIntersection($cid, $entity_type, $entity_type_bundle, 'fields'),
-      ]);
-
-      $importer->process();
-    }
+    $required = $this->getFieldsMissing($cid, $form_state->getValue('entity_type'), $entity_type_bundle, 'required');
+    $this->importer->createInstance($entity_type . '_importer', [
+      'cid' => $cid,
+      'entity_type' => $entity_type,
+      'entity_type_bundle' => $entity_type_bundle,
+      'fields' => $this->getEntityTypeFields($entity_type, $entity_type_bundle)['fields'],
+    ])->process();
   }
 
 }

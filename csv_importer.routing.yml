@@ -4,4 +4,4 @@ csv_importer.form:
     _form: '\Drupal\csv_importer\Form\ImporterForm'
     _title: 'Import CSV'
   requirements:
-    _permission: 'access content'
+    _permission: 'administer configuration'

@@ -22,4 +22,8 @@ class Parser implements ParserInterface {
     return $this->getCsvById($id)[0];
   }
 
+  public function getCsvKeys() {
+    
+  }
+
 }

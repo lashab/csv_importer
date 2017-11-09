@@ -6,12 +6,12 @@ use Drupal\csv_importer\Plugin\ImporterBase;
 use Drupal\csv_importer\Plugin\ImporterInterface;
 
 /**
- * Class NodeImporter.
+ * Class UserImporter.
  *
  * @Importer(
- *   id = "node_importer",
- *   entity_type = "node",
- *   label = @Translation("Node importer")
+ *   id = "user_importer",
+ *   entity_type = "user",
+ *   label = @Translation("User importer")
  * )
  */
-class NodeImporter extends ImporterBase {}
+class UserImporter extends ImporterBase {}

@@ -14,4 +14,4 @@ use Drupal\csv_importer\Plugin\ImporterInterface;
  *   label = @Translation("Taxonomy importer")
  * )
  */
-class TaxonomyImporter extends ImporterBase implements ImporterInterface {}
+class TaxonomyImporter extends ImporterBase {}

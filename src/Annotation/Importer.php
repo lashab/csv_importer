@@ -15,7 +15,7 @@ use Drupal\Component\Annotation\Plugin;
 class Importer extends Plugin {
 
   /**
-   * The plugin ID.
+   * The plugin id.
    *
    * @var string
    */
