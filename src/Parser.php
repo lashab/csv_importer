@@ -14,16 +14,35 @@ class Parser implements ParserInterface {
    */
   public function getCsvById($id) {
     /* @var \Drupal\file\Entity\File $entity */
-    $entity = File::load($id);
-    return array_map('str_getcsv', file($entity->uri->getString()));
+    $entity = $this->getCsvEntity($id);
+
+    if ($entity && !empty($entity)) {
+      return array_map('str_getcsv', file($entity->uri->getString()));      
+    }
+
+    return NULL;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getCsvFieldsById($id) {
-    return $this->getCsvById($id)[0];
+    if ($entity && is_array($entity)) {
+      return $this->getCsvById($id)[0];
+    }
+
+    return NULL;
   }
 
-  public function getCsvKeys() {
-    
+  /**
+   * {@inheritdoc}
+   */
+  public function getCsvEntity($id) {
+    if ($id) {
+      return File::load($id);
+    }
+
+    return NULL;
   }
 
 }

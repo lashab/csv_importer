@@ -73,7 +73,6 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
    */
   public function process() {
     $process = [];
-
     if ($operations = $this->getOperations()) {
       $process['operations'] = $operations;
     }
@@ -86,26 +85,21 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
-  public function getProcessData() {
-    $csv = $this->parser->getCsvById($this->configuration['cid']);
-    $entity_type = $this->configuration['entity_type'];
-    $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
+  public function data() {
+    $csv = $this->configuration['csv'];
     $return = [];
 
     if ($csv && is_array($csv)) {
-      $keys = $csv[0];
+      $csv_fields = $csv[0];
       unset($csv[0]);
-
       foreach ($csv as $index => $data) {
         foreach ($data as $key => $content) {
           if ($content) {
             $content = Unicode::convertToUtf8($content, mb_detect_encoding($content));
-            $fields = explode('|', $keys[$key]);
+            $fields = explode('|', $csv_fields[$key]);
 
             if (count($fields) > 1) {
               $field = $fields[0];
-              unset($fields[0]);
-
               foreach ($fields as $in) {
                 $return[$index][$field][$in] = $content; 
               }
@@ -118,9 +112,6 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
 
         $return[$index] = array_intersect_key($return[$index], array_flip($this->configuration['fields']));
 
-        if ($entity_definition->hasKey('bundle')) {
-          $return[$index][$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
-        }
       }
     }
 
@@ -132,10 +123,10 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
    */
   public function getOperations() {
     $operations = [];
-    foreach ($this->getProcessData() as $content) {
+    foreach ($this->data() as $content) {
       $operations[] = [
         [$this, 'addContent'],
-        [$this->configuration, $content],
+        [$content],
       ];
     }
 
@@ -145,12 +136,22 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
-  public function addContent($configuration, $content, &$context) {
-    $entity = $this->entityTypeManager->getStorage($configuration['entity_type'], $configuration['entity_type_bundle'])->create($content);
-    $this->preSave($entity, $configuration, $context);
-    $entity->save();
+  public function addContent($content, &$context) {
+    $entity_type = $this->configuration['entity_type'];
+    $entity_type_bundle = $this->configuration['entity_type_bundle'];
+    $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
 
-    $context['results'][] = $content;
+    if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
+      $content[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
+    }
+
+    $entity = $this->entityTypeManager->getStorage($entity_type, $entity_type_bundle)->create($content);
+
+    $this->preSave($entity, $context);
+
+    if ($entity->save()) {
+      $context['results'][] = $content;
+    }
   }
 
   /**
@@ -166,6 +167,9 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
     drupal_set_message($message);
   }
 
-  protected function preSave(&$entity, $configuration, $context) {}
+  /**
+   * {@inheritdoc}
+   */
+  public function preSave(&$entity, $context) {}
 
 }

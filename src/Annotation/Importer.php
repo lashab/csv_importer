@@ -26,7 +26,7 @@ class Importer extends Plugin {
    *
    * @var string
    */
-  public $entity_type;
+  public $entity;
 
   /**
    * The label of the plugin.
