@@ -281,16 +281,15 @@ class ImporterForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $entity_type = $form_state->getValue('entity_type');
     $entity_type_bundle = NULL;
+    $csv = current($form_state->getValue('csv'));
 
     if (isset($form_state->getUserInput()['entity_type_bundle'])) {
       $entity_type_bundle = $form_state->getUserInput()['entity_type_bundle'];
     }
 
-    $csv = current($form_state->getValue('csv'));
-
     $this->importer->createInstance($entity_type . '_importer', [
       'csv' => $this->parser->getCsvById($csv),
-      'entity' => $this->parser->getCsvEntity($csv),
+      'csv_entity' => $this->parser->getCsvEntity($csv),
       'entity_type' => $entity_type,
       'entity_type_bundle' => $entity_type_bundle,
       'fields' => $this->getEntityTypeFields($entity_type, $entity_type_bundle)['fields'],

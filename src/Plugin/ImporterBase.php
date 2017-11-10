@@ -29,13 +29,6 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   protected $entityTypeManager;
 
   /**
-   * Parser service.
-   *
-   * @var \Drupal\csv_importer\Parser\CsvParserInterface $csvParser
-   */
-  protected $parser;
-
-  /**
    * Constructs ImporterBase object.
    *
    * @param array $configuration
@@ -46,13 +39,10 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
    *   The plugin implementation definition.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   Entity type manager service.
-   * @param \Drupal\csv_importer\ParserInterface $parser
-   *   Parser manager service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, ParserInterface $parser) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityTypeManager = $entity_type_manager;
-    $this->parser = $parser;
   }
 
   /**
@@ -63,23 +53,8 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('entity_type.manager'),
-      $container->get('csv_importer.parser')
+      $container->get('entity_type.manager')
     );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function process() {
-    $process = [];
-    if ($operations = $this->getOperations()) {
-      $process['operations'] = $operations;
-    }
-
-    $process['finished'] = [$this, 'finished'];
-
-    batch_set($process);
   }
 
   /**
@@ -121,6 +96,26 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
+  public function addContent($content, &$context) {
+    $entity_type = $this->configuration['entity_type'];
+    $entity_type_bundle = $this->configuration['entity_type_bundle'];
+    $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
+
+    if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
+      $content[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
+    }
+
+    $entity = $this->entityTypeManager->getStorage($entity_type, $entity_type_bundle)->create($content);
+
+    $this->preSave($entity, $context);
+    if ($entity->save()) {
+      $context['results'][] = $content;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getOperations() {
     $operations = [];
     foreach ($this->data() as $content) {
@@ -136,27 +131,6 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
-  public function addContent($content, &$context) {
-    $entity_type = $this->configuration['entity_type'];
-    $entity_type_bundle = $this->configuration['entity_type_bundle'];
-    $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
-
-    if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
-      $content[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
-    }
-
-    $entity = $this->entityTypeManager->getStorage($entity_type, $entity_type_bundle)->create($content);
-
-    $this->preSave($entity, $context);
-
-    if ($entity->save()) {
-      $context['results'][] = $content;
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function finished($success, $contents, $operations) {
     $message = '';
 
@@ -165,6 +139,20 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
     }
 
     drupal_set_message($message);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function process() {
+    $process = [];
+    if ($operations = $this->getOperations()) {
+      $process['operations'] = $operations;
+    }
+
+    $process['finished'] = [$this, 'finished'];
+
+    batch_set($process);
   }
 
   /**
