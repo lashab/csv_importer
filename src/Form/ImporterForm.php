@@ -286,11 +286,11 @@ class ImporterForm extends FormBase {
       $entity_type_bundle = $form_state->getUserInput()['entity_type_bundle'];
     }
 
-    $cid = current($form_state->getValue('csv'));
-    $required = $this->getFieldsMissing($cid, $form_state->getValue('entity_type'), $entity_type_bundle, 'required');
+    $csv = current($form_state->getValue('csv'));
 
     $this->importer->createInstance($entity_type . '_importer', [
-      'cid' => $cid,
+      'csv' => $this->parser->getCsvById($csv),
+      'entity' => $this->parser->getCsvEntity($csv),
       'entity_type' => $entity_type,
       'entity_type_bundle' => $entity_type_bundle,
       'fields' => $this->getEntityTypeFields($entity_type, $entity_type_bundle)['fields'],
