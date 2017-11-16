@@ -6,10 +6,10 @@ namespace Drupal\csv_importer;
  * Csv parser manager interface.
  */
 interface ParserInterface {
-  
+
   /**
    * Get CSV by id.
-   *  
+   *
    * @param string $id
    *   CSV id.
    *
@@ -20,7 +20,7 @@ interface ParserInterface {
 
   /**
    * Get CSV fields (first row).
-   *  
+   *
    * @param string $id
    *   CSV id.
    *
@@ -31,7 +31,7 @@ interface ParserInterface {
 
   /**
    * Load CSV.
-   *  
+   *
    * @param string $id
    *   CSV id.
    *

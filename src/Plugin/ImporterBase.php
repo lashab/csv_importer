@@ -162,6 +162,6 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
    * @param array $context
    *   The batch context array.
    */
-  public function preSave(&$entity, $context) {}
+  public function preSave(&$entity, array $context) {}
 
 }
