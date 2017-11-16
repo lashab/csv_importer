@@ -8,4 +8,54 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 /**
  * Importer manager interface.
  */
-interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryPluginInterface {}
+interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryPluginInterface {
+
+  /**
+   * Prepare data for import.
+   *
+   * @return array
+   *   Prepared data.
+   */
+  public function data();
+
+  /**
+   * Add content.
+   *
+   * @param array $content
+   *   CSV content.
+   * @param array $context
+   *   The batch context array.
+   *
+   * @return array
+   *   Prepared data.
+   */
+  public function addContent($content, &$context);
+
+  /**
+   * Get batch operations.
+   *
+   * @return array
+   *   The batch operations.
+   */
+  public function getOperations()
+  
+  /**
+   * Batch finish handler.
+   *
+   * @param bool $success
+   *   A boolean indicating whether the batch has completed successfully.
+   * @param array $contents
+   *   The value set in $context['results'] by callback_batch_operation().
+   * @param array $operations
+   *   Contains the operations that remained unprocessed.
+   *
+   * @return array
+   *   Prepared data.
+   */
+  public function finished($success, $contents, $operations);
+
+  /**
+   * Run batch operations.
+   */
+  public function process();
+}

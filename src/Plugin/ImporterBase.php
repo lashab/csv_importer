@@ -6,7 +6,6 @@ use Drupal\Core\Plugin\PluginBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Component\Utility\Unicode;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\csv_importer\ParserInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
@@ -24,7 +23,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * Entity type manager.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 
@@ -76,7 +75,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
             if (count($fields) > 1) {
               $field = $fields[0];
               foreach ($fields as $in) {
-                $return[$index][$field][$in] = $content; 
+                $return[$index][$field][$in] = $content;
               }
             }
             else {
@@ -156,7 +155,12 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Override entity before run $entity->save().
+   *
+   * @param mixed $entity
+   *   Entity object.
+   * @param array $context
+   *   The batch context array.
    */
   public function preSave(&$entity, $context) {}
 

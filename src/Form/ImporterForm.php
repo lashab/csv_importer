@@ -19,35 +19,35 @@ class ImporterForm extends FormBase {
   /**
    * Entity type manager.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 
   /**
    * Entity field manager.
    *
-   * @var \Drupal\Core\Entity\EntityFieldManagerInterface $entityFieldManager
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
    */
   protected $entityFieldManager;
 
   /**
    * Parser manager.
    *
-   * @var \Drupal\csv_importer\Parser\ParserInterface $parser
+   * @var \Drupal\csv_importer\Parser\ParserInterface
    */
   protected $parser;
 
   /**
    * Renderer service.
    *
-   * @var \Drupal\Core\Render\RendererInterface $renderer
+   * @var \Drupal\Core\Render\RendererInterface
    */
   protected $renderer;
 
   /**
    * Importer plugin manager.
    *
-   * @var \Drupal\csv_importer\Plugin\ImporterInterface $importer
+   * @var \Drupal\csv_importer\Plugin\ImporterInterface
    */
   protected $importer;
 
@@ -233,7 +233,7 @@ class ImporterForm extends FormBase {
    *
    * @param string $entity_type
    *   Entity type.
-   * @param string|NULL $entity_type_bundle
+   * @param string|null $entity_type_bundle
    *   Entity type bundle.
    *
    * @return array
@@ -267,7 +267,7 @@ class ImporterForm extends FormBase {
    * @return array
    *   Missing fields.
    */
-  protected function getEntityTypeMissingFields($entity_type, $required, $csv) {
+  protected function getEntityTypeMissingFields($entity_type, array $required, array $csv) {
     $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
 
     if ($entity_definition->hasKey('bundle')) {

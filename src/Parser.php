@@ -17,7 +17,7 @@ class Parser implements ParserInterface {
     $entity = $this->getCsvEntity($id);
 
     if ($entity && !empty($entity)) {
-      return array_map('str_getcsv', file($entity->uri->getString()));      
+      return array_map('str_getcsv', file($entity->uri->getString()));
     }
 
     return NULL;
