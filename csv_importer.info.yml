@@ -1,6 +1,6 @@
 name: CSV importer
 type: module
-description: 'CSV importer.'
+description: 'Import content from CSV.'
 package: CSV
 # version: '8.x-3.0'
 core: '8.x'
