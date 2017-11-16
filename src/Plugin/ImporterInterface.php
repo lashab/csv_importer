@@ -8,8 +8,4 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 /**
  * Importer manager interface.
  */
-interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryPluginInterface {
-
-  
-  
-}
+interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryPluginInterface {}

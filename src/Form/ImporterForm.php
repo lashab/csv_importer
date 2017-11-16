@@ -4,11 +4,6 @@ namespace Drupal\csv_importer\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\AppendCommand;
-use Drupal\Core\Ajax\ReplaceCommand;
-use Drupal\Core\Ajax\RemoveCommand;
-use Drupal\Core\Ajax\UpdateBuildIdCommand;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\csv_importer\ParserInterface;
@@ -109,15 +104,32 @@ class ImporterForm extends FormBase {
       '#suffix' => '</div>',
     ];
 
-    if ($form_state->getValue('entity_type') && $this->getEntityTypeBundleOptions($form_state->getValue('entity_type'))) {
+    if ($entity_type = $form_state->getValue('entity_type')) {
 
-      $form['entity_types_container']['entity_type_bundle'] = [
-        '#type' => 'select',
-        '#title' => t('Choose entity bundle'),
-        '#options' => $this->getEntityTypeBundleOptions($form_state->getValue('entity_type')),
-        '#required' => TRUE,
+      if ($options = $this->getEntityTypeBundleOptions($entity_type)) {
+        $form['entity_types_container']['entity_type_bundle'] = [
+          '#type' => 'select',
+          '#title' => $this->t('Choose entity bundle'),
+          '#options' => $options,
+          '#required' => TRUE,
+        ];
+      }
+
+      $options = $this->getEntityTypeImporterOptions($entity_type);
+
+      $form['entity_types_container']['plugin_id'] = [
+        '#type' => 'hidden',
+        '#value' => key($options),
       ];
 
+      if (count($options) > 1) {
+        $form['entity_types_container']['plugin_id'] = [
+          '#type' => 'select',
+          '#title' => $this->t('Choose importer'),
+          '#options' => $options,
+          '#default_value' => 0,
+        ];
+      }
     }
 
     $form['csv'] = [
@@ -129,16 +141,6 @@ class ImporterForm extends FormBase {
     ];
 
     $form['actions']['#type'] = 'actions';
-    $form['actions']['view'] = [
-      '#type' => 'button',
-      '#value' => $this->t('View fields'),
-      '#limit_validation_errors' => [],
-      '#ajax' => [
-        'callback' => [$this, 'getContentEntityFieldsAjaxForm'],
-        'event' => 'click',
-        'prevent' => 'submit',
-      ],
-    ];
     $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('CSV import'),
@@ -148,26 +150,46 @@ class ImporterForm extends FormBase {
     return $form;
   }
 
+  /**
+   * Entity type AJAX form handler.
+   */
+  public function getContentEntityTypesAjaxForm(array &$form, FormStateInterface $form_state) {
+    return $form['entity_types_container'];
+  }
+
+  /**
+   * Get entity type options.
+   *
+   * @return array
+   *   Entity type options.
+   */
   protected function getEntityTypeOptions() {
     $options = [];
     $plugin_definitions = $this->importer->getDefinitions();
 
-    if ($plugin_definitions && is_array($plugin_definitions)) {
-      foreach ($plugin_definitions as $definition) {
-        $entity_type = $definition['entity_type'];
-        if ($this->entityTypeManager->hasDefinition($entity_type)) {
-          $entity = $this->entityTypeManager->getDefinition($entity_type);
-          $options[$entity_type] = $entity->getLabel();
-        }
+    foreach ($plugin_definitions as $definition) {
+      $entity_type = $definition['entity_type'];
+      if ($this->entityTypeManager->hasDefinition($entity_type)) {
+        $entity = $this->entityTypeManager->getDefinition($entity_type);
+        $options[$entity_type] = $entity->getLabel();
       }
     }
 
     return $options;
   }
 
+  /**
+   * Get entity type bundle options.
+   *
+   * @param string $entity_type
+   *   Entity type.
+   *
+   * @return array
+   *   Entity type bundle options.
+   */
   protected function getEntityTypeBundleOptions($entity_type) {
-    $entity = $this->entityTypeManager->getDefinition($entity_type);
     $options = [];
+    $entity = $this->entityTypeManager->getDefinition($entity_type);
 
     if ($entity && $type = $entity->getBundleEntityType()) {
       $types = $this->entityTypeManager->getStorage($type)->loadMultiple();
@@ -182,51 +204,41 @@ class ImporterForm extends FormBase {
     return $options;
   }
 
-  public function getContentEntityTypesAjaxForm(array &$form, FormStateInterface $form_state) {
-    return $form['entity_types_container'];
-  }
+  /**
+   * Get entity importer plugin options.
+   *
+   * @param string $entity_type
+   *   Entity type.
+   *
+   * @return array
+   *   Entity importer plugin options.
+   */
+  protected function getEntityTypeImporterOptions($entity_type) {
+    $plugin_definitions = $this->importer->getDefinitions();
+    $entity_type_importers = array_keys(array_combine(array_keys($plugin_definitions), array_column($plugin_definitions, 'entity_type')), $entity_type);
 
-  public function getContentEntityFieldsAjaxForm(array &$form, FormStateInterface $form_state) {
-    $render = '';
+    if ($entity_type_importers && is_array($entity_type_importers)) {
+      $plugin_definitions = array_intersect_key($plugin_definitions, array_flip($entity_type_importers));
 
-    if ($form_state->getValue('entity_type')) {
-      $fields = $this->getEntityTypeFields($form_state->getValue('entity_type'), $form_state->getUserInput()['entity_type_bundle']);
-
-      $fields['csv'] = [];
-      if ($csv = current($form_state->getValue('csv'))) {
-        $fields['csv'] = $this->parser->getCsvFieldsById(current($csv));
+      foreach ($plugin_definitions as $plugin_id => $plugin_defintion) {
+        $options[$plugin_id] = $plugin_defintion['label'];
       }
-
-      $header = [
-        'field' => $this->t('List of fields'), 
-        'field_required' => $this->t('List of required fields'),
-        'field_csv' => $this->t('List of CSV fields'),
-      ];
-
-      $rows = array_map(function ($field, $required, $csv) {
-        return [
-          'field' => $field,
-          'field_required' => $required,
-          'field_csv' => $csv,
-        ];
-      }, $fields['fields'], $fields['required'], $fields['csv']);
-
-      $element = [
-        '#type' => 'table',
-        '#header' => $header,
-        '#rows' => $rows,
-      ];
-
-      $render = $this->renderer->render($element);
     }
 
-    $response = new AjaxResponse();
-    $response->addCommand(new RemoveCommand('.csv-importer-form table'));
-    $response->addCommand(new AppendCommand('.csv-importer-form', $render));
-
-    return $response;
+    return $options;
   }
 
+  /**
+   * Get entity type fields.
+   *
+   * @param string $entity_type
+   *   Entity type.
+   * @param string|NULL $entity_type_bundle
+   *   Entity type bundle.
+   *
+   * @return array
+   *   Entity type fields.
+   */
   protected function getEntityTypeFields($entity_type, $entity_type_bundle = NULL) {
     $fields = [];
     $entity_fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $entity_type_bundle);
@@ -242,37 +254,36 @@ class ImporterForm extends FormBase {
     return $fields;
   }
 
-  protected function getContentEntityTypes($entity_type = NULL) {
-    if ($entity_type) {
-      return $this->entityTypeManager->getDefinition($entity_type);
+  /**
+   * Get entity missing fields.
+   *
+   * @param string $entity_type
+   *   Entity type.
+   * @param array $required
+   *   Entity required fields.
+   * @param array $csv
+   *   Parsed CSV.
+   *
+   * @return array
+   *   Missing fields.
+   */
+  protected function getEntityTypeMissingFields($entity_type, $required, $csv) {
+    $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
+
+    if ($entity_definition->hasKey('bundle')) {
+      unset($required[array_search($entity_definition->getKey('bundle'), $required)]);
     }
 
-    $entities = $this->entityTypeManager->getDefinitions();
-    return array_filter($entities, function ($entity) {
-      return $entity->getGroup() === 'content';
-    });
-  }
+    $csv_fields = [];
 
-  protected function getFieldsIntersection($cid, $entity_type, $entity_type_bundle = NULL, $index) {
-    $fields_csv = $this->parser->getCsvFieldsById($cid);
-
-    $fields = $this->getEntityTypeFields($entity_type, $entity_type_bundle)[$index];
-
-    return array_intersect($fields_csv, $fields);
-  }
-
-  protected function getFieldsMissing($cid, $entity_type, $entity_type_bundle) {
-    $fields_intersect = $this->getFieldsIntersection($cid, $entity_type, $entity_type_bundle, 'required');
-    $fields = $this->getEntityTypeFields($entity_type, $entity_type_bundle)['required'];
-    $return = [];
-
-    foreach ($fields as $field) {
-      if (!in_array($field, $fields_intersect)) {
-        $return[] = $field;
-      }
+    foreach ($csv[0] as $csv_row) {
+      $csv_row = explode('|', $csv_row);
+      $csv_fields[] = $csv_row[0];
     }
 
-    return $return;
+    $csv_fields = array_values(array_unique($csv_fields));
+
+    return array_diff($required, $csv_fields);
   }
 
   /**
@@ -282,18 +293,31 @@ class ImporterForm extends FormBase {
     $entity_type = $form_state->getValue('entity_type');
     $entity_type_bundle = NULL;
     $csv = current($form_state->getValue('csv'));
+    $csv_parse = $this->parser->getCsvById($csv);
 
     if (isset($form_state->getUserInput()['entity_type_bundle'])) {
       $entity_type_bundle = $form_state->getUserInput()['entity_type_bundle'];
     }
 
-    $this->importer->createInstance($entity_type . '_importer', [
-      'csv' => $this->parser->getCsvById($csv),
-      'csv_entity' => $this->parser->getCsvEntity($csv),
-      'entity_type' => $entity_type,
-      'entity_type_bundle' => $entity_type_bundle,
-      'fields' => $this->getEntityTypeFields($entity_type, $entity_type_bundle)['fields'],
-    ])->process();
+    $entity_fields = $this->getEntityTypeFields($entity_type, $entity_type_bundle);
+
+    if ($required = $this->getEntityTypeMissingFields($entity_type, $entity_fields['required'], $csv_parse)) {
+      $render = [
+        '#theme' => 'item_list',
+        '#items' => $required,
+      ];
+
+      drupal_set_message($this->t('Your CSV has missing required fields: @fields', ['@fields' => $this->renderer->render($render)]), 'error');
+    }
+    else {
+      $this->importer->createInstance($form_state->getUserInput()['plugin_id'], [
+        'csv' => $csv_parse,
+        'csv_entity' => $this->parser->getCsvEntity($csv),
+        'entity_type' => $entity_type,
+        'entity_type_bundle' => $entity_type_bundle,
+        'fields' => $entity_fields['fields'],
+      ])->process();
+    }
   }
 
 }
