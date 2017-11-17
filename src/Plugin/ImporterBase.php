@@ -95,7 +95,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
-  public function addContent($content, &$context) {
+  public function addContent(array $content, array &$context) {
     $entity_type = $this->configuration['entity_type'];
     $entity_type_bundle = $this->configuration['entity_type_bundle'];
     $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
@@ -130,7 +130,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
-  public function finished($success, $contents, $operations) {
+  public function finished($success, array $contents, array $operations) {
     $message = '';
 
     if ($success) {

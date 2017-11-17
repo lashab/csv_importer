@@ -37,7 +37,7 @@ interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryP
    * @return array
    *   The batch operations.
    */
-  public function getOperations()
+  public function getOperations();
 
   /**
    * Batch finish handler.
