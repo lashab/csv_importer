@@ -5,11 +5,12 @@ namespace Drupal\csv_importer\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\csv_importer\ParserInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Render\RendererInterface;
+use Drupal\csv_importer\ParserInterface;
 use Drupal\csv_importer\Plugin\ImporterManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides CSV importer form.
@@ -17,46 +18,67 @@ use Drupal\csv_importer\Plugin\ImporterManager;
 class ImporterForm extends FormBase {
 
   /**
-   * Entity type manager.
+   * The entity type manager service.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 
   /**
-   * Entity field manager.
+   * The entity field manager service.
    *
    * @var \Drupal\Core\Entity\EntityFieldManagerInterface
    */
   protected $entityFieldManager;
 
   /**
-   * Parser manager.
+   * The entity bundle info service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
+   */
+  protected $entityBundleInfo;
+
+  /**
+   * The parser service.
    *
    * @var \Drupal\csv_importer\Parser\ParserInterface
    */
   protected $parser;
 
   /**
-   * Renderer service.
+   * The renderer service.
    *
    * @var \Drupal\Core\Render\RendererInterface
    */
   protected $renderer;
 
   /**
-   * Importer plugin manager.
+   * The importer plugin manager service.
    *
-   * @var \Drupal\csv_importer\Plugin\ImporterInterface
+   * @var \Drupal\csv_importer\Plugin\ImporterManager
    */
   protected $importer;
 
   /**
    * ImporterForm class constructor.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager service.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   *   The entity field manager service.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_bundle_info
+   *   The entity bundle info service.
+   * @param \Drupal\csv_importer\Parser\ParserInterface $parser
+   *   The parser service.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer service.
+   * @param \Drupal\csv_importer\Plugin\ImporterManager $importer
+   *   The importer plugin manager service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, ParserInterface $parser, RendererInterface $renderer, ImporterManager $importer) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, EntityTypeBundleInfoInterface $entity_bundle_info, ParserInterface $parser, RendererInterface $renderer, ImporterManager $importer) {
     $this->entityTypeManager = $entity_type_manager;
     $this->entityFieldManager = $entity_field_manager;
+    $this->entityBundleInfo = $entity_bundle_info;
     $this->parser = $parser;
     $this->renderer = $renderer;
     $this->importer = $importer;
@@ -69,6 +91,7 @@ class ImporterForm extends FormBase {
     return new static(
       $container->get('entity_type.manager'),
       $container->get('entity_field.manager'),
+      $container->get('entity_type.bundle.info'),
       $container->get('csv_importer.parser'),
       $container->get('renderer'),
       $container->get('plugin.manager.importer')
@@ -100,8 +123,9 @@ class ImporterForm extends FormBase {
 
     $form['entity_types_container'] = [
       '#type' => 'container',
-      '#prefix' => '<div id="entity-types-container">',
-      '#suffix' => '</div>',
+      '#attributes' => [
+        'id' => 'entity-types-container',
+      ],
     ];
 
     if ($entity_type = $form_state->getValue('entity_type')) {
@@ -241,6 +265,11 @@ class ImporterForm extends FormBase {
    */
   protected function getEntityTypeFields($entity_type, $entity_type_bundle = NULL) {
     $fields = [];
+
+    if (!$entity_type_bundle) {
+      $entity_type_bundle = key($this->entityBundleInfo->getBundleInfo($entity_type));
+    }
+
     $entity_fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $entity_type_bundle);
     $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
     foreach ($entity_fields as $machine_name => $entity_field) {
