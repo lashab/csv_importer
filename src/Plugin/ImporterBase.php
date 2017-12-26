@@ -106,7 +106,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
 
     $entity = $this->entityTypeManager->getStorage($entity_type, $entity_type_bundle)->create($content);
 
-    $this->preSave($entity, $context);
+    $this->preSave($entity, $content, $context);
     if ($entity->save()) {
       $context['results'][] = $content;
     }
@@ -155,13 +155,15 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   }
 
   /**
-   * Override entity before run $entity->save().
+   * Override entity before run Entity::save().
    *
    * @param mixed $entity
-   *   Entity object.
+   *   The entity object.
+   * @param array $content
+   *   The content array to be saved.
    * @param array $context
    *   The batch context array.
    */
-  public function preSave(&$entity, array $context) {}
+  public function preSave(&$entity, array $content, array &$context) {}
 
 }
