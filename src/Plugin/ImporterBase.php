@@ -95,7 +95,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
-  public function addContent(array $content, array &$context) {
+  public function add(array $content, array &$context) {
     $entity_type = $this->configuration['entity_type'];
     $entity_type_bundle = $this->configuration['entity_type_bundle'];
     $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
@@ -104,11 +104,19 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
       $content[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
     }
 
-    $entity = $this->entityTypeManager->getStorage($entity_type, $entity_type_bundle)->create($content);
+    $entity_storage = $this->entityTypeManager->getStorage($this->configuration['entity_type'], $this->configuration['entity_type_bundle']);
+    $entity = current($entity_storage->loadByProperties($content)) ?: $entity_storage->create($content);
+
+    if ($this->configuration['update'] && !$entity->isNew()) {
+      foreach ($content as $key => $data) {
+        $entity->set($key, $data);
+      }
+    }
 
     $this->preSave($entity, $content, $context);
+
     if ($entity->save()) {
-      $context['results'][] = $content;
+      $context['results'][] = $entity;
     }
   }
 
@@ -119,7 +127,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
     $operations = [];
     foreach ($this->data() as $content) {
       $operations[] = [
-        [$this, 'addContent'],
+        [$this, 'add'],
         [$content],
       ];
     }
@@ -133,8 +141,23 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   public function finished($success, array $contents, array $operations) {
     $message = '';
 
+    $operation = [
+      'add' => [],
+      'update' => [],
+    ];
+
     if ($success) {
-      $message = $this->t('@count content added', ['@count' => count($contents)]);
+
+      foreach ($contents as $entity) {
+        if (!$entity->isNew()) {
+          $operation['update'][] = TRUE;
+        }
+        else {
+          $operation['add'][] = TRUE;
+        }
+      }
+
+      $message = $this->t('@add added and @update updated content', ['@add' => count($operation['add']), '@update' => count($operation['update'])]);
     }
 
     drupal_set_message($message);

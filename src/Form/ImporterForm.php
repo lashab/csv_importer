@@ -11,6 +11,7 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\csv_importer\ParserInterface;
 use Drupal\csv_importer\Plugin\ImporterManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Render\Element\MachineName;
 
 /**
  * Provides CSV importer form.
@@ -109,59 +110,94 @@ class ImporterForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['entity_type'] = [
+    $form['importer'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'id' => 'csv-importer',
+      ],
+    ];
+
+    $form['importer']['entity_type'] = [
       '#type' => 'select',
       '#title' => $this->t('Choose entity type'),
       '#required' => TRUE,
       '#options' => $this->getEntityTypeOptions(),
+      '#weight' => 0,
       '#ajax' => [
         'callback' => [$this, 'getContentEntityTypesAjaxForm'],
-        'wrapper' => 'entity-types-container',
+        'wrapper' => 'csv-importer',
         'event' => 'change',
-      ],
-    ];
-
-    $form['entity_types_container'] = [
-      '#type' => 'container',
-      '#attributes' => [
-        'id' => 'entity-types-container',
       ],
     ];
 
     if ($entity_type = $form_state->getValue('entity_type')) {
 
       if ($options = $this->getEntityTypeBundleOptions($entity_type)) {
-        $form['entity_types_container']['entity_type_bundle'] = [
+        $form['importer']['entity_type_bundle'] = [
           '#type' => 'select',
           '#title' => $this->t('Choose entity bundle'),
           '#options' => $options,
           '#required' => TRUE,
+          '#weight' => 5,
         ];
+
       }
 
       $options = $this->getEntityTypeImporterOptions($entity_type);
 
-      $form['entity_types_container']['plugin_id'] = [
+      $form['importer']['plugin_id'] = [
         '#type' => 'hidden',
         '#value' => key($options),
       ];
 
       if (count($options) > 1) {
-        $form['entity_types_container']['plugin_id'] = [
+        $form['importer']['plugin_id'] = [
           '#type' => 'select',
           '#title' => $this->t('Choose importer'),
           '#options' => $options,
           '#default_value' => 0,
+          '#weight' => 25,
         ];
       }
     }
 
-    $form['csv'] = [
+    $form['importer']['update'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Update'),
+      '#weight' => 15,
+    ];
+
+    $check_state = [
+      ':input[name="update"]' => ['checked' => TRUE],
+    ]; 
+
+    $form['importer']['update_field'] = [
+      '#type' => 'machine_name',
+      '#title' => $this->t('Field'),
+      '#description' => $this->t('Enter field machine name you want to update content by: for example enter nid to update nodes by id.'),
+      '#weight' => 15,
+      '#size' => 25,
+      '#required' => FALSE,
+      '#element_validate' => [
+        ['\Drupal\Core\Render\Element\MachineName', 'validateMachineName'],
+        [$this, 'validateUpdate'],
+      ],
+      '#machine_name' => [
+        'exists' => [$this, 'exists'],
+      ],
+      '#states' => [
+        'visible' => $check_state,
+        'required' => $check_state,
+      ],
+    ];
+
+    $form['importer']['csv'] = [
       '#type' => 'managed_file',
       '#title' => $this->t('Choose CSV file'),
       '#required' => TRUE,
       '#autoupload' => TRUE,
       '#upload_validators' => ['file_validate_extensions' => ['csv']],
+      '#weight' => 10,
     ];
 
     $form['actions']['#type'] = 'actions';
@@ -178,7 +214,7 @@ class ImporterForm extends FormBase {
    * Entity type AJAX form handler.
    */
   public function getContentEntityTypesAjaxForm(array &$form, FormStateInterface $form_state) {
-    return $form['entity_types_container'];
+    return $form['importer'];
   }
 
   /**
@@ -271,7 +307,6 @@ class ImporterForm extends FormBase {
     }
 
     $entity_fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $entity_type_bundle);
-    $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
     foreach ($entity_fields as $machine_name => $entity_field) {
       $fields['fields'][] = $entity_field->getName();
 
@@ -316,6 +351,29 @@ class ImporterForm extends FormBase {
   }
 
   /**
+   * Machine name element handler.
+   */
+  public function exists() {
+    return FALSE;
+  }
+
+  /**
+   * Form element validation handler for update machine_name element.
+   */
+  public function validateUpdate(&$element, FormStateInterface $form_state, &$form) {
+    if ($form_state->getValue('update')) {
+      $entity_fields = $this->getEntityTypeFields($form_state->getValue('entity_type'), $form_state->getValue('entity_type_bundle'))['fields'];
+      $update_field = $form_state->getValue('update_field');
+
+      if (!in_array($update_field, $entity_fields)) {
+        $form_state->setError($element, $this->t('@field field not found for the entity.', [
+          '@field' => $update_field,
+        ]));
+      }
+    }
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
@@ -345,6 +403,7 @@ class ImporterForm extends FormBase {
         'entity_type' => $entity_type,
         'entity_type_bundle' => $entity_type_bundle,
         'fields' => $entity_fields['fields'],
+        'update' => $form_state->getValue('update') ? $form_state->getValue('update_field') : FALSE,
       ])->process();
     }
   }

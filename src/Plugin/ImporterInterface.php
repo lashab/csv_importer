@@ -29,7 +29,7 @@ interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryP
    * @return array
    *   Prepared data.
    */
-  public function addContent(array $content, array &$context);
+  public function add(array $content, array &$context);
 
   /**
    * Get batch operations.
