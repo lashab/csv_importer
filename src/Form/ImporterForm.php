@@ -358,7 +358,7 @@ class ImporterForm extends FormBase {
   }
 
   /**
-   * Form element validation handler for update machine_name element.
+   * Form element validation handler for update element.
    */
   public function validateUpdate(&$element, FormStateInterface $form_state, &$form) {
     if ($form_state->getValue('update')) {
