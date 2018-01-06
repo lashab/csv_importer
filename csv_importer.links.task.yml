@@ -1,0 +1,9 @@
+csv_importer.form:
+  route_name: csv_importer.form
+  title: Import
+  base_route: csv_importer.form
+
+csv_importer.settings:
+  route_name: csv_importer.settings
+  title: Settings
+  base_route: csv_importer.form
