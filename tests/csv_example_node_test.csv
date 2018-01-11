@@ -1,2 +1,2 @@
-title,field_link|title,field_link|uri,path|alias,path|pathauto
-CSV importer test 1,Drupal,http://example.com,/csv-importer-test-1,FALSE
+uid,title,field_boolean,field_changed,field_created,field_decimal,field_email,field_entity_reference,field_float,field_integer,field_password,field_string,field_string_long,field_timestamp,field_comment,field_datetime,field_list_float,field_list_string,field_list_integer,path,path|pathauto,field_telephone,field_text,field_text_long,field_text_with_summary,field_uri,field_link|title,field_link|uri
+1111,CSV importer test 1,1,1515663417,1515663407,17.1,example@field_email.com,1111,19.7,1777,12345,Normal string,Long string,1514663409,CSV Importer comment 1,10/10/10,17.5,List string 1,1117,/csv-importer-node-1,0,11111111111,Normal text 1,Long text 1,Normal text with summary 1,http://example_field_uri.com,CSV importer link 1,http://example_field_link.com
