@@ -1,0 +1,18 @@
+name: CSV importer test
+type: module
+description: 'Import content from CSV test.'
+core: '8.x'
+package: CSV
+dependencies:
+  - node
+  - taxonomy
+  - link
+  - path
+  - text
+  - options
+  - datetime
+  - menu_ui
+  - file
+  - editor
+
+hidden: true
