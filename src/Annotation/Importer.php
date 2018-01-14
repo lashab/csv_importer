@@ -12,29 +12,4 @@ use Drupal\Component\Annotation\Plugin;
  *
  * @Annotation
  */
-class Importer extends Plugin {
-
-  /**
-   * The plugin id.
-   *
-   * @var string
-   */
-  public $id;
-
-  /**
-   * The entity type.
-   *
-   * @var string
-   */
-  public $entity;
-
-  /**
-   * The label of the plugin.
-   *
-   * @var \Drupal\Core\Annotation\Translation
-   *
-   * @ingroup plugin_translatable
-   */
-  public $label;
-
-}
+class Importer extends Plugin {}

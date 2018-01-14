@@ -5,11 +5,3 @@ csv_importer.form:
     _title: 'Import CSV'
   requirements:
     _permission: 'administer site configuration'
-
-csv_importer.settings:
-  path: '/admin/config/development/csv-importer/settings'
-  defaults:
-    _form: '\Drupal\csv_importer\Form\ImporterSettingsForm'
-    _title: 'CSV importer settings'
-  requirements:
-    _permission: 'administer site configuration'
