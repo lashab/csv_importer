@@ -161,36 +161,6 @@ class ImporterForm extends FormBase {
       }
     }
 
-    $form['importer']['update'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Update'),
-      '#weight' => 15,
-    ];
-
-    $check_state = [
-      ':input[name="update"]' => ['checked' => TRUE],
-    ]; 
-
-    $form['importer']['update_field'] = [
-      '#type' => 'machine_name',
-      '#title' => $this->t('Field'),
-      '#description' => $this->t('Enter field machine name you want to update content by: for example enter nid to update nodes by id.'),
-      '#weight' => 15,
-      '#size' => 25,
-      '#required' => FALSE,
-      '#element_validate' => [
-        ['\Drupal\Core\Render\Element\MachineName', 'validateMachineName'],
-        [$this, 'validateUpdate'],
-      ],
-      '#machine_name' => [
-        'exists' => [$this, 'exists'],
-      ],
-      '#states' => [
-        'visible' => $check_state,
-        'required' => $check_state,
-      ],
-    ];
-
     $form['importer']['csv'] = [
       '#type' => 'managed_file',
       '#title' => $this->t('Choose CSV file'),
@@ -348,29 +318,6 @@ class ImporterForm extends FormBase {
     $csv_fields = array_values(array_unique($csv_fields));
 
     return array_diff($required, $csv_fields);
-  }
-
-  /**
-   * Machine name element handler.
-   */
-  public function exists() {
-    return FALSE;
-  }
-
-  /**
-   * Form element validation handler for update element.
-   */
-  public function validateUpdate(&$element, FormStateInterface $form_state, &$form) {
-    if ($form_state->getValue('update')) {
-      $entity_fields = $this->getEntityTypeFields($form_state->getValue('entity_type'), $form_state->getValue('entity_type_bundle'))['fields'];
-      $update_field = $form_state->getValue('update_field');
-
-      if (!in_array($update_field, $entity_fields)) {
-        $form_state->setError($element, $this->t('@field field not found for the entity.', [
-          '@field' => $update_field,
-        ]));
-      }
-    }
   }
 
   /**

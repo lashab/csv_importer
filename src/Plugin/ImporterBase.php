@@ -107,18 +107,17 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
 
     $entity_storage = $this->entityTypeManager->getStorage($this->configuration['entity_type'], $this->configuration['entity_type_bundle']);
 
-    $entity = isset($content[$entity_update]) && !empty($entity_storage->loadByProperties([$entity_update => $content[$entity_update]])) ? current($entity_storage->loadByProperties([$entity_update => $content[$entity_update]])) : $entity_storage->create($content);
-
+    $entity = $entity_storage->create($content);
     $has_content = !$entity->isNew();
 
-    if ($entity_update && $has_content) {
-      foreach ($content as $key => $data) {
-        $entity->set($key, $data);
-      }
-    }
-    else {
-      $entity->{$entity_definition->getKey('id')} = NULL;
-    }
+    // if ($entity_update && $has_content) {
+    //   foreach ($content as $key => $data) {
+    //     $entity->set($key, $data);
+    //   }
+    // }
+    // else {
+    //   $entity->{$entity_definition->getKey('id')} = NULL;
+    // }
 
     $this->preSave($entity, $content, $context);
 

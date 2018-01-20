@@ -10,34 +10,34 @@ interface ParserInterface {
   /**
    * Get CSV by id.
    *
-   * @param string $id
+   * @param int $id
    *   CSV id.
    *
    * @return array|null
    *   Parsed CSV.
    */
-  public function getCsvById($id);
+  public function getCsvById(int $id);
 
   /**
-   * Get CSV fields (first row).
+   * Get CSV column (first row).
    *
-   * @param string $id
+   * @param int $id
    *   CSV id.
    *
    * @return array|null
    *   CSV field names.
    */
-  public function getCsvFieldsById($id);
+  public function getCsvFieldsById(int $id);
 
   /**
    * Load CSV.
    *
-   * @param string $id
+   * @param int $id
    *   CSV id.
    *
    * @return \Drupal\file\Entity\File|null
    *   Entity object.
    */
-  public function getCsvEntity($id);
+  public function getCsvEntity(int $id);
 
 }

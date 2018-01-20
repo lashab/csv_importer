@@ -12,7 +12,7 @@ class Parser implements ParserInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCsvById($id) {
+  public function getCsvById(int $id) {
     /* @var \Drupal\file\Entity\File $entity */
     $entity = $this->getCsvEntity($id);
 
@@ -26,7 +26,7 @@ class Parser implements ParserInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCsvFieldsById($id) {
+  public function getCsvFieldsById(int $id) {
     $csv = $this->getCsvById($id);
 
     if ($csv && is_array($csv)) {
@@ -39,7 +39,7 @@ class Parser implements ParserInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCsvEntity($id) {
+  public function getCsvEntity(int $id) {
     if ($id) {
       return File::load($id);
     }
