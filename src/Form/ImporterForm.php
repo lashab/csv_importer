@@ -217,7 +217,7 @@ class ImporterForm extends FormBase {
    * @return array
    *   Entity type bundle options.
    */
-  protected function getEntityTypeBundleOptions($entity_type) {
+  protected function getEntityTypeBundleOptions(string $entity_type) {
     $options = [];
     $entity = $this->entityTypeManager->getDefinition($entity_type);
 
@@ -243,7 +243,7 @@ class ImporterForm extends FormBase {
    * @return array
    *   Entity importer plugin options.
    */
-  protected function getEntityTypeImporterOptions($entity_type) {
+  protected function getEntityTypeImporterOptions(string $entity_type) {
     $plugin_definitions = $this->importer->getDefinitions();
     $entity_type_importers = array_keys(array_combine(array_keys($plugin_definitions), array_column($plugin_definitions, 'entity_type')), $entity_type);
 
@@ -269,7 +269,7 @@ class ImporterForm extends FormBase {
    * @return array
    *   Entity type fields.
    */
-  protected function getEntityTypeFields($entity_type, $entity_type_bundle = NULL) {
+  protected function getEntityTypeFields(string $entity_type, string $entity_type_bundle = NULL) {
     $fields = [];
 
     if (!$entity_type_bundle) {
@@ -301,7 +301,7 @@ class ImporterForm extends FormBase {
    * @return array
    *   Missing fields.
    */
-  protected function getEntityTypeMissingFields($entity_type, array $required, array $csv) {
+  protected function getEntityTypeMissingFields(string $entity_type, array $required, array $csv) {
     $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
 
     if ($entity_definition->hasKey('bundle')) {
@@ -350,7 +350,6 @@ class ImporterForm extends FormBase {
         'entity_type' => $entity_type,
         'entity_type_bundle' => $entity_type_bundle,
         'fields' => $entity_fields['fields'],
-        'update' => $form_state->getValue('update') ? $form_state->getValue('update_field') : FALSE,
       ])->process();
     }
   }

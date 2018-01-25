@@ -21,7 +21,7 @@ interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryP
   /**
    * Add content.
    *
-   * @param array $content
+   * @param mixed $content
    *   CSV content.
    * @param array $context
    *   The batch context array.
@@ -29,7 +29,7 @@ interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryP
    * @return array
    *   Prepared data.
    */
-  public function add(array $content, array &$context);
+  public function add($content, array &$context);
 
   /**
    * Get batch operations.

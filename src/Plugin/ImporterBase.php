@@ -84,8 +84,9 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
           }
         }
 
-        $return[$index] = array_intersect_key($return[$index], array_flip($this->configuration['fields']));
-
+        if (isset($return[$index])) {
+          $return[$index] = array_intersect_key($return[$index], array_flip($this->configuration['fields']));
+        }
       }
     }
 
@@ -95,34 +96,30 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
-  public function add(array $content, array &$context) {
+  public function add($content, array &$context) {
+    if (!$content) {
+      return NULL;
+    }
+
     $entity_type = $this->configuration['entity_type'];
     $entity_type_bundle = $this->configuration['entity_type_bundle'];
     $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
-    $entity_update = $this->configuration['update'];
 
     if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
       $content[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
     }
 
-    $entity_storage = $this->entityTypeManager->getStorage($this->configuration['entity_type'], $this->configuration['entity_type_bundle']);
-
-    $entity = $entity_storage->create($content);
-    $has_content = !$entity->isNew();
-
-    // if ($entity_update && $has_content) {
-    //   foreach ($content as $key => $data) {
-    //     $entity->set($key, $data);
-    //   }
-    // }
-    // else {
-    //   $entity->{$entity_definition->getKey('id')} = NULL;
-    // }
-
+    $added = 0;
+    $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'], $this->configuration['entity_type_bundle'])->create($content);
     $this->preSave($entity, $content, $context);
 
-    if ($entity->save()) {
-      $context['results'][] = (int) $has_content;
+    try {
+      $added = $entity->save();
+    } 
+    catch (\Exception $e) {}
+
+    if ($added) {
+      $context['results'][] = $entity;
     }
   }
 
@@ -148,8 +145,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
     $message = '';
 
     if ($success) {
-      $count = array_count_values($contents);
-      $message = $this->t('@add added and @update updated', ['@add' => $count[0] ?? 0, '@update' => $count[1] ?? 0]);
+      $message = $this->t('@count content added.', ['@count' => count($contents)]);
     }
 
     drupal_set_message($message);
