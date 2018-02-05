@@ -115,8 +115,9 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
 
     try {
       $added = $entity->save();
-    } 
-    catch (\Exception $e) {}
+    }
+    catch (\Exception $e) {
+    }
 
     if ($added) {
       $context['results'][] = $entity;

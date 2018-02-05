@@ -4,3 +4,4 @@ services:
     parent: default_plugin_manager
   csv_importer.parser:
     class: Drupal\csv_importer\Parser
+    arguments: ['@entity_type.manager']

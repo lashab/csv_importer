@@ -2,12 +2,29 @@
 
 namespace Drupal\csv_importer;
 
-use Drupal\file\Entity\File;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Parser manager.
  */
 class Parser implements ParserInterface {
+
+  /**
+   * Entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * Constructs Parser object.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   Entity type manager service.
+   */
+  public function __construct(EntityTypeManagerInterface $entity_type_manager) {
+    $this->entityTypeManager = $entity_type_manager;
+  }
 
   /**
    * {@inheritdoc}
@@ -41,7 +58,7 @@ class Parser implements ParserInterface {
    */
   public function getCsvEntity(int $id) {
     if ($id) {
-      return File::load($id);
+      return $this->entityTypeManager->getStorage('file')->load($id);
     }
 
     return NULL;

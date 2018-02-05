@@ -11,7 +11,6 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\csv_importer\ParserInterface;
 use Drupal\csv_importer\Plugin\ImporterManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Render\Element\MachineName;
 
 /**
  * Provides CSV importer form.
@@ -277,7 +276,7 @@ class ImporterForm extends FormBase {
     }
 
     $entity_fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $entity_type_bundle);
-    foreach ($entity_fields as $machine_name => $entity_field) {
+    foreach ($entity_fields as $entity_field) {
       $fields['fields'][] = $entity_field->getName();
 
       if ($entity_field->isRequired()) {

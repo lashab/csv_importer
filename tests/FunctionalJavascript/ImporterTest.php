@@ -25,7 +25,12 @@ class ImporterTest extends JavascriptTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $account = $this->drupalCreateUser(['administer site configuration', 'administer users', 'access user profiles']);
+    $account = $this->drupalCreateUser([
+      'administer site configuration',
+      'administer users',
+      'access user profiles',
+    ]);
+
     $this->drupalLogin($account);
 
     Node::create([
@@ -37,7 +42,7 @@ class ImporterTest extends JavascriptTestBase {
     User::create([
       'uid' => 1111,
       'name' => 'John Doe',
-      'roles' => [$this->createAdminRole()], 
+      'roles' => [$this->createAdminRole()],
     ])->save();
 
     Term::create([
@@ -100,7 +105,6 @@ class ImporterTest extends JavascriptTestBase {
    *   Entity type.
    * @param string|null $entity_type_bundle
    *   Entity type bundle.
-   *
    */
   protected function processForm(string $entity_type, string $entity_type_bundle = NULL) {
     $assert = $this->assertSession();
