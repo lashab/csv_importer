@@ -1,4 +1,4 @@
-name: CSV importer
+name: CSV Importer
 type: module
 description: 'Import content from CSV.'
 package: CSV
