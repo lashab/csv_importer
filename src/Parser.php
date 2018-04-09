@@ -32,12 +32,17 @@ class Parser implements ParserInterface {
   public function getCsvById(int $id) {
     /* @var \Drupal\file\Entity\File $entity */
     $entity = $this->getCsvEntity($id);
+    $return = [];
 
-    if ($entity && !empty($entity)) {
-      return array_map('str_getcsv', file($entity->uri->getString()));
+    if (($csv = fopen($entity->uri->getString(), 'r')) !== FALSE) {
+      while (($row = fgetcsv($csv, 0, ',')) !== FALSE) {
+        $return[] = $row;
+      }
+
+      fclose($csv);
     }
 
-    return NULL;
+    return $return;
   }
 
   /**
