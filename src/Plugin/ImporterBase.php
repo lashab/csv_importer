@@ -105,36 +105,37 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
     $entity_type_bundle = $this->configuration['entity_type_bundle'];
     $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
 
-    if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
-      $content[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
-    }
-
     $added = 0;
-    $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'], $this->configuration['entity_type_bundle'])->create($content);
-    $this->preSave($entity, $content, $context);
 
-    try {
-      $added = $entity->save();
-    }
-    catch (\Exception $e) {
+    foreach ($content as $data) {
+      if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
+        $data[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
+      }
+
+      $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'], $this->configuration['entity_type_bundle'])->create($data);
+      $this->preSave($entity, $data, $context);
+  
+      try {
+        $added += $entity->save();
+      }
+      catch (\Exception $e) {
+      }
     }
 
     if ($added) {
-      $context['results'][] = $entity;
+      $context['results'] = $added;
     }
+
   }
 
   /**
    * {@inheritdoc}
    */
   public function getOperations() {
-    $operations = [];
-    foreach ($this->data() as $content) {
-      $operations[] = [
-        [$this, 'add'],
-        [$content],
-      ];
-    }
+    $operations[] = [
+      [$this, 'add'],
+      [$this->data()],
+    ];
 
     return $operations;
   }
@@ -142,11 +143,11 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
   /**
    * {@inheritdoc}
    */
-  public function finished($success, array $contents, array $operations) {
+  public function finished($success, $results, array $operations) {
     $message = '';
 
     if ($success) {
-      $message = $this->t('@count content added.', ['@count' => count($contents)]);
+      $message = $this->t('@count content added.', ['@count' => $results]);
     }
 
     drupal_set_message($message);

@@ -44,7 +44,7 @@ interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryP
    *
    * @param bool $success
    *   A boolean indicating whether the batch has completed successfully.
-   * @param array $contents
+   * @param array $results
    *   The value set in $context['results'] by callback_batch_operation().
    * @param array $operations
    *   Contains the operations that remained unprocessed.
@@ -52,7 +52,7 @@ interface ImporterInterface extends PluginInspectionInterface, ContainerFactoryP
    * @return array
    *   Prepared data.
    */
-  public function finished($success, array $contents, array $operations);
+  public function finished($success, $results, array $operations);
 
   /**
    * Run batch operations.
