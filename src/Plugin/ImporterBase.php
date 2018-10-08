@@ -73,7 +73,12 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
             $fields = explode('|', $csv_fields[$key]);
 
             if ($fields[0] == 'translation') {
-              $return['translations'][$index][$fields[2]][$fields[1]] = $content;
+              if (count($fields) > 3) {
+                $return['translations'][$index][$fields[3]][$fields[1]][$fields[2]] = $content;
+              }
+              else {
+                $return['translations'][$index][$fields[2]][$fields[1]] = $content;
+              }
             }
             else {
               if (count($fields) > 1) {
