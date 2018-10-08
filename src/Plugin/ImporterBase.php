@@ -72,20 +72,25 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
             $content = Unicode::convertToUtf8($content, mb_detect_encoding($content));
             $fields = explode('|', $csv_fields[$key]);
 
-            if (count($fields) > 1) {
-              $field = $fields[0];
-              foreach ($fields as $in) {
-                $return[$index][$field][$in] = $content;
-              }
+            if ($fields[0] == 'translation') {
+              $return['translations'][$index][$fields[2]][$fields[1]] = $content;
             }
             else {
-              $return[$index][current($fields)] = $content;
+              if (count($fields) > 1) {
+                $field = $fields[0];
+                foreach ($fields as $key => $in) {
+                  $return['content'][$index][$field][$in] = $content;
+                }
+              }
+              else {
+                $return['content'][$index][current($fields)] = $content;
+              }
             }
           }
         }
 
         if (isset($return[$index])) {
-          $return[$index] = array_intersect_key($return[$index], array_flip($this->configuration['fields']));
+          $return['content'][$index] = array_intersect_key($return[$index], array_flip($this->configuration['fields']));
         }
       }
     }
@@ -107,16 +112,25 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
 
     $added = 0;
 
-    foreach ($content as $data) {
+    foreach ($content['content'] as $key => $data) {
       if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
         $data[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
       }
 
-      $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'], $this->configuration['entity_type_bundle'])->create($data);
+      $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'])->create($data);
+
       $this->preSave($entity, $data, $context);
   
       try {
         $added += $entity->save();
+
+        if (isset($content['translations'][$key]) && is_array($content['translations'][$key])) {
+          foreach ($content['translations'][$key] as $code => $translations) {
+            $entity_data = array_replace($translations, $translations);
+            $entity_translation = $entity->addTranslation($code, $entity_data);
+            $entity_translation->save();
+          }
+        }
       }
       catch (\Exception $e) {
       }
