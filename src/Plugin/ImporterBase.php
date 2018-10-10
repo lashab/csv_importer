@@ -68,7 +68,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
       unset($csv[0]);
       foreach ($csv as $index => $data) {
         foreach ($data as $key => $content) {
-          if ($content) {
+          if ($content && isset($csv_fields[$key])) {
             $content = Unicode::convertToUtf8($content, mb_detect_encoding($content));
             $fields = explode('|', $csv_fields[$key]);
 
@@ -116,18 +116,37 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
     $entity_definition = $this->entityTypeManager->getDefinition($entity_type);
 
     $added = 0;
+    $updated = 0;
 
     foreach ($content['content'] as $key => $data) {
       if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
         $data[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
       }
-
-      $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'])->create($data);
-
-      $this->preSave($entity, $data, $context);
-  
+      
+      /** @var \Drupal\Core\Entity\Sql\SqlContentEntityStorage $entity_storage  */
+      $entity_storage = $this->entityTypeManager->getStorage($this->configuration['entity_type']);
+      
       try {
-        $added += $entity->save();
+        if (isset($data[$entity_definition->getKeys()['id']]) && $entity = $entity_storage->load($data[$entity_definition->getKeys()['id']])) {
+          /** @var \Drupal\Core\Entity\ContentEntityInterface $entity  */
+          foreach ($data as $key => $set) {
+            $entity->set($key, $set);
+          }
+  
+          if ($entity->save()) {
+            $updated++;
+          }
+        }
+        else {
+          /** @var \Drupal\Core\Entity\ContentEntityInterface $entity  */
+          $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'])->create($data);
+  
+          if ($entity->save()) {
+            $added++;
+          }
+        }
+  
+        $this->preSave($entity, $data, $context);
 
         if (isset($content['translations'][$key]) && is_array($content['translations'][$key])) {
           foreach ($content['translations'][$key] as $code => $translations) {
@@ -141,10 +160,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
       }
     }
 
-    if ($added) {
-      $context['results'] = $added;
-    }
-
+    $context['results'] = [$added, $updated];
   }
 
   /**
@@ -166,7 +182,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
     $message = '';
 
     if ($success) {
-      $message = $this->t('@count content added.', ['@count' => $results]);
+      $message = $this->t('@count_added content added and @count_updated updated', ['@count_added' => isset($results[0]) ? $results[0] : 0, '@count_updated' => isset($results[1]) ? $results[1] : 0]);
     }
 
     drupal_set_message($message);

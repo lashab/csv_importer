@@ -172,7 +172,7 @@ class ImporterForm extends FormBase {
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('CSV import'),
+      '#value' => $this->t('Import'),
       '#button_type' => 'primary',
     ];
 
