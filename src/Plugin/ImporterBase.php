@@ -129,9 +129,11 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
       try {
         if (isset($data[$entity_definition->getKeys()['id']]) && $entity = $entity_storage->load($data[$entity_definition->getKeys()['id']])) {
           /** @var \Drupal\Core\Entity\ContentEntityInterface $entity  */
-          foreach ($data as $key => $set) {
-            $entity->set($key, $set);
+          foreach ($data as $id => $set) {
+            $entity->set($id, $set);
           }
+
+          $this->preSave($entity, $data, $context);
   
           if ($entity->save()) {
             $updated++;
@@ -140,18 +142,29 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
         else {
           /** @var \Drupal\Core\Entity\ContentEntityInterface $entity  */
           $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'])->create($data);
-  
+          
+          $this->preSave($entity, $data, $context);
+
           if ($entity->save()) {
             $added++;
           }
         }
-  
-        $this->preSave($entity, $data, $context);
 
         if (isset($content['translations'][$key]) && is_array($content['translations'][$key])) {
           foreach ($content['translations'][$key] as $code => $translations) {
             $entity_data = array_replace($translations, $translations);
-            $entity_translation = $entity->addTranslation($code, $entity_data);
+
+            if ($entity->hasTranslation($code)) {
+              $entity_translation = $entity->getTranslation($code);
+
+              foreach ($entity_data as $key => $translation_data) {
+                $entity_translation->set($key, $translation_data);
+              } 
+            }
+            else {
+              $entity_translation = $entity->addTranslation($code, $entity_data);
+            }
+
             $entity_translation->save();
           }
         }
