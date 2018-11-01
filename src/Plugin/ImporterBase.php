@@ -81,10 +81,23 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
               }
             }
             else {
+              $field = $fields[0];
               if (count($fields) > 1) {
-                $field = $fields[0];
                 foreach ($fields as $key => $in) {
                   $return['content'][$index][$field][$in] = $content;
+                }
+              }
+              else if (isset($return['content'][$index][$field])) {
+                $prev = $return['content'][$index][$field];
+                $return['content'][$index][$field] = [];
+
+                if (is_array($prev)) {
+                  $prev[] = $content;
+                  $return['content'][$index][$field] = $prev;
+                }
+                else {
+                  $return['content'][$index][$field][] = $prev;
+                  $return['content'][$index][$field][] = $content;
                 }
               }
               else {
