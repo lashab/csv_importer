@@ -1,31 +1,35 @@
-# CSV Importer
+CSV importer module helps to import content from CSV files. 
 
-## INTRODUCTION
+<strong>Supports following entity types import: </strong>
 
-Import content from CSV files.
+<ul>
+  <li><a target="_blank" href="https://www.drupal.org/docs/8/modules/csv-importer/examples">Content (nodes)</a></li>
+  <li><a target="_blank" href="https://www.drupal.org/docs/8/modules/csv-importer/examples">Taxonomy</a></li>
+  <li><a target="_blank" href="https://www.drupal.org/docs/8/modules/csv-importer/examples">User</a> </li>
+  <li><a target="_blank" href="https://www.drupal.org/docs/8/modules/csv-importer/import-menu-link-content">Menu link</a></li>
+  <li><a target="_blank" href="https://www.drupal.org/docs/8/modules/csv-importer/import-comment">Comment</a></li>
+</ul>
 
-## INSTALLATION
+<h2>Usage:</h2>
 
-<code>composer require drupal/csv_importer:1.2-rc1</code>
+<ul>
+  <li>Go to - <strong>/admin/config/development/csv-importer</strong></li>
+  <li>Choose entity type</li>
+  <li>Choose entity bundle (if any)</li>
+  <li>Choose delimiter</li>
+  <li>Choose CSV file</li>
+  <li>Press Import</li>
+</ul>
 
-## REQUIREMENTS
-No special requirements.
+<h2>Features:</h2>
+<ul>
+  <li><a target="_blank" href="https://www.drupal.org/docs/8/modules/csv-importer/import-translations">Import translations</a></li>
+  <li><a target="_blank" href="https://www.drupal.org/docs/8/modules/csv-importer/import-multiple-content">Import multiple content</a></li>
+</ul>
 
-## CONFIGURATION
-The module has no modifiable settings.
+<h2>For developers:</h2>
+<ul>
+  <li><a href="https://www.drupal.org/docs/8/modules/csv-importer/create-custom-entity-type-import">Create custom entity type import</a></li>
+</ul>
 
-## USAGE
-
-- Navigate to <strong>admin/config/development/csv-importer</strong>
-- Choose entity type
-- Choose entity bundle (if any)
-- Choose CSV file
-- Press <strong>CSV import</strong>
-
-## DOCUMENTATION
-
-Documentation - https://www.drupal.org/docs/8/modules/csv-importer
-
-## MAINTEINERS
-
-Lasha Badashvili - https://www.drupal.org/u/lashabp
+For more details and examples see <a target="_blank" href="https://www.drupal.org/docs/8/modules/csv-importer">documentation</a>
