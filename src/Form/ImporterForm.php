@@ -158,6 +158,20 @@ class ImporterForm extends FormBase {
           '#weight' => 25,
         ];
       }
+
+      $form['importer']['delimiter'] = [
+        '#type' => 'select',
+        '#title' => $this->t('Choose delimiter'),
+        '#options' => [
+          ',' => ',',
+          '~' => '~',
+          ';' => ';',
+          ':' => ':',
+        ],
+        '#default_value' => ',',
+        '#required' => TRUE,
+        '#weight' => 10,
+      ];
     }
 
     $form['importer']['csv'] = [
@@ -309,9 +323,11 @@ class ImporterForm extends FormBase {
 
     $csv_fields = [];
 
-    foreach ($csv[0] as $csv_row) {
-      $csv_row = explode('|', $csv_row);
-      $csv_fields[] = $csv_row[0];
+    if (!empty($csv)) {
+      foreach ($csv[0] as $csv_row) {
+        $csv_row = explode('|', $csv_row);
+        $csv_fields[] = $csv_row[0];
+      }
     }
 
     $csv_fields = array_values(array_unique($csv_fields));
@@ -326,7 +342,7 @@ class ImporterForm extends FormBase {
     $entity_type = $form_state->getValue('entity_type');
     $entity_type_bundle = NULL;
     $csv = current($form_state->getValue('csv'));
-    $csv_parse = $this->parser->getCsvById($csv);
+    $csv_parse = $this->parser->getCsvById($csv, $form_state->getUserInput()['delimiter']);
 
     if (isset($form_state->getUserInput()['entity_type_bundle'])) {
       $entity_type_bundle = $form_state->getUserInput()['entity_type_bundle'];
@@ -340,7 +356,7 @@ class ImporterForm extends FormBase {
         '#items' => $required,
       ];
 
-      drupal_set_message($this->t('Your CSV has missing required fields: @fields', ['@fields' => $this->renderer->render($render)]), 'error');
+      $this->messenger()->addError($this->t('Your CSV has missing required fields: @fields', ['@fields' => $this->renderer->render($render)]));
     }
     else {
       $this->importer->createInstance($form_state->getUserInput()['plugin_id'], [

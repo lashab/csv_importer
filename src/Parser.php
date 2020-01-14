@@ -29,13 +29,13 @@ class Parser implements ParserInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCsvById(int $id) {
+  public function getCsvById(int $id, string $delimiter) {
     /* @var \Drupal\file\Entity\File $entity */
     $entity = $this->getCsvEntity($id);
     $return = [];
 
     if (($csv = fopen($entity->uri->getString(), 'r')) !== FALSE) {
-      while (($row = fgetcsv($csv, 0, ',')) !== FALSE) {
+      while (($row = fgetcsv($csv, 0, $delimiter)) !== FALSE) {
         $return[] = $row;
       }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\csv_importer\FunctionalJavascript;
+namespace Drupal\Tests\csv_importer\FunctionalJavascript;
 
 use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
 use Drupal\user\Entity\User;
@@ -122,7 +122,7 @@ class ImporterTest extends JavascriptTestBase {
     $page->attachFileToField('files[csv]', drupal_get_path('module', 'csv_importer_test') . "/content/csv_example_{$entity_type}_test.csv");
     $assert->assertWaitOnAjaxRequest();
 
-    $page->pressButton('CSV import');
+    $page->pressButton('Import');
     $assert->assertWaitOnAjaxRequest();
   }
 
@@ -145,14 +145,15 @@ class ImporterTest extends JavascriptTestBase {
     $assert->elementTextContains('css', '.field--name-field-float-number', '17.20');
     $assert->elementTextContains('css', '.field--name-field-integer-number', '17');
 
-    $assert->elementContains('css', '.field--name-field-content-reference', '<a href="/node/1111" hreflang="en">CSV importer reference node</a>');
-    $assert->elementContains('css', '.field--name-field-user-reference', '<a href="/user/1111" hreflang="en">John Doe</a>');
-
-    $this->assertSession()->elementContains('css', '.field--name-field-text-formatted', '<strong>Formatted text</strong>');
-    $this->assertSession()->elementContains('css', '.field--name-field-text-formatted-long', '<strong>Formatted text long</strong>');
-    $this->assertSession()->elementContains('css', '.field--name-field-text-formatted-summary', '<strong>Formatted text summary</strong>');
     $assert->elementTextContains('css', '.field--name-field-text-plain', 'Plain text');
     $assert->elementTextContains('css', '.field--name-field-text-plain-long', 'Plain text long');
+
+    $assert->elementTextContains('css', '.field--name-field-content-reference', 'CSV importer reference node');
+    $assert->elementTextContains('css', '.field--name-field-user-reference', 'John Doe');
+
+    $assert->elementTextContains('css', '.field--name-field-text-formatted', 'Formatted text');
+    $assert->elementTextContains('css', '.field--name-field-text-formatted-long', 'Formatted text long');
+    $assert->elementTextContains('css', '.field--name-field-text-formatted-summary', 'Formatted text summary');
   }
 
 }

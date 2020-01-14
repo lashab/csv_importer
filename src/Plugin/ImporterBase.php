@@ -135,10 +135,10 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
       if ($entity_definition->hasKey('bundle') && $entity_type_bundle) {
         $data[$entity_definition->getKey('bundle')] = $this->configuration['entity_type_bundle'];
       }
-      
+
       /** @var \Drupal\Core\Entity\Sql\SqlContentEntityStorage $entity_storage  */
       $entity_storage = $this->entityTypeManager->getStorage($this->configuration['entity_type']);
-      
+
       try {
         if (isset($data[$entity_definition->getKeys()['id']]) && $entity = $entity_storage->load($data[$entity_definition->getKeys()['id']])) {
           /** @var \Drupal\Core\Entity\ContentEntityInterface $entity  */
@@ -147,7 +147,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
           }
 
           $this->preSave($entity, $data, $context);
-  
+
           if ($entity->save()) {
             $updated++;
           }
@@ -155,7 +155,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
         else {
           /** @var \Drupal\Core\Entity\ContentEntityInterface $entity  */
           $entity = $this->entityTypeManager->getStorage($this->configuration['entity_type'])->create($data);
-          
+
           $this->preSave($entity, $data, $context);
 
           if ($entity->save()) {
@@ -172,7 +172,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
 
               foreach ($entity_data as $key => $translation_data) {
                 $entity_translation->set($key, $translation_data);
-              } 
+              }
             }
             else {
               $entity_translation = $entity->addTranslation($code, $entity_data);
@@ -211,7 +211,7 @@ abstract class ImporterBase extends PluginBase implements ImporterInterface {
       $message = $this->t('@count_added content added and @count_updated updated', ['@count_added' => isset($results[0]) ? $results[0] : 0, '@count_updated' => isset($results[1]) ? $results[1] : 0]);
     }
 
-    drupal_set_message($message);
+    $this->messenger()->addMessage($message);
   }
 
   /**
